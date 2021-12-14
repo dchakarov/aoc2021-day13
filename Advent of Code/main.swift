@@ -11,29 +11,59 @@ func main() {
     guard let inputString = try? String(contentsOf: fileUrl, encoding: .utf8) else { fatalError("Invalid input") }
     
     let lines = inputString.components(separatedBy: "\n")
-        .filter { !$0.isEmpty }
-    
-    // Sample algorithm
-    var scoreboard = [String: Int]()
+
+    var dots = [(x: Int, y: Int)]()
+    var instructions = [(String, Int)]()
+
+    var parsingDots = true
     lines.forEach { line in
-        let (name, score) = parseLine(line)
-        scoreboard[name] = score
+        if line.isEmpty {
+            parsingDots = false
+            return
+        }
+        if parsingDots {
+            let ar = line.components(separatedBy: ",").map { Int($0)! }
+            dots.append((ar[0], ar[1]))
+        } else {
+            let ar = line.components(separatedBy: " ").last!.components(separatedBy: "=")
+            let coord = ar[0]
+            let val = Int(ar[1])!
+            instructions.append((coord, val))
+        }
     }
-    scoreboard
-        .sorted { lhs, rhs in
-            lhs.value > rhs.value
-        }
-        .forEach { name, score in
-            print("\(name) \(score) pts")
-        }
+    let newDots = apply(instructions.removeFirst(), dots: dots)
+    print(newDots.count)
 }
 
-func parseLine(_ line: String) -> (name: String, score: Int) {
-    let helper = RegexHelper(pattern: #"([\-\w]*)\s(\d+)"#)
-    let result = helper.parse(line)
-    let name = result[0]
-    let score = Int(result[1])!
-    return (name: name, score: score)
+func apply(_ instruction: (String, Int), dots: [(x: Int, y: Int)]) -> [(x: Int, y: Int)] {
+
+    var newDots = [(x: Int, y: Int)]()
+
+    if instruction.0 == "x" {
+        dots.forEach { dot in
+            if dot.x < instruction.1 {
+                newDots.append(dot)
+            } else if dot.x > instruction.1 {
+                let newX = 2 * instruction.1 - dot.x
+                if !dots.contains(where: { $0.x == newX && $0.y == dot.y }) {
+                    newDots.append((x: newX, y: dot.y))
+                }
+            }
+        }
+    } else {
+        dots.forEach { dot in
+            if dot.y < instruction.1 {
+                newDots.append(dot)
+            } else if dot.y > instruction.1 {
+                let newY = 2 * instruction.1 - dot.y
+                if !dots.contains(where: { $0.x == dot.x && $0.y == newY }) {
+                    newDots.append((x: dot.x, y: newY))
+                }
+            }
+        }
+    }
+
+    return newDots
 }
 
 main()
