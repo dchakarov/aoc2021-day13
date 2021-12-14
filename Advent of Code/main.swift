@@ -31,8 +31,37 @@ func main() {
             instructions.append((coord, val))
         }
     }
-    let newDots = apply(instructions.removeFirst(), dots: dots)
-    print(newDots.count)
+//    let newDots = apply(instructions.removeFirst(), dots: dots)
+//    print(newDots.count)
+
+    var newDots = dots
+    while !instructions.isEmpty {
+        newDots = apply(instructions.removeFirst(), dots: newDots)
+    }
+
+    printDots(newDots)
+}
+
+func printDots(_ dots: [(x: Int, y: Int)]) {
+    var maxX = 0
+    var maxY = 0
+    dots.forEach { dot in
+        maxX = max(maxX, dot.x)
+        maxY = max(maxY, dot.y)
+    }
+
+    for j in 0 ... maxY {
+        var row = [String]()
+        for i in 0 ... maxX {
+            if dots.contains(where: { $0.x == i && $0.y == j }) {
+                row.append("#")
+            } else {
+                row.append(" ")
+            }
+        }
+        print(row.joined(separator: ""))
+    }
+
 }
 
 func apply(_ instruction: (String, Int), dots: [(x: Int, y: Int)]) -> [(x: Int, y: Int)] {
